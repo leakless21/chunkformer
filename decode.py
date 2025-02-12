@@ -51,8 +51,8 @@ def endless_decode(args, model, char_dict):
     right_context_size = args.right_context_size
     conv_lorder = model.encoder.cnn_module_kernel // 2
 
-    # get the maximum length that the gpu can consumes
-    max_length_limited_context = args.max_duration
+    # get the maximum length that the gpu can consume
+    max_length_limited_context = args.total_batch_duration
     max_length_limited_context = int((max_length_limited_context // 0.01))//2 # in 10ms second
 
     multiply_n = max_length_limited_context // chunk_size // subsampling_factor
@@ -120,7 +120,7 @@ def endless_decode(args, model, char_dict):
 def batch_decode(args, model, char_dict):
     df = pd.read_csv(args.audio_list, sep="\t")
 
-    max_length_limited_context = args.max_duration
+    max_length_limited_context = args.total_batch_duration
     max_length_limited_context = int((max_length_limited_context // 0.01)) // 2 # in 10ms second    xs = []
     max_frames = max_length_limited_context
     chunk_size = args.chunk_size
@@ -186,10 +186,10 @@ def main():
         help="Path to Huggingface checkpoint repo"
     )
     parser.add_argument(
-        "--max_duration", 
+        "--total_batch_duration", 
         type=int, 
         default=1800, 
-        help="The maximum audio duration (in second) that your GPU memory can handle at once. Default is 1800s"
+        help="The total audio duration (in second) in a batch that your GPU memory can handle at once. Default is 1800s"
     )
     parser.add_argument(
         "--chunk_size", 
@@ -233,7 +233,7 @@ def main():
 
     # Print the arguments
     print(f"Model Checkpoint: {args.model_checkpoint}")
-    print(f"Maximum Duration (in second): {args.max_duration}")
+    print(f"Maximum Duration (in second): {args.total_batch_duration}")
     print(f"Chunk Size: {args.chunk_size}")
     print(f"Left Context Size: {args.left_context_size}")
     print(f"Right Context Size: {args.right_context_size}")

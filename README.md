@@ -27,6 +27,11 @@ ChunkFormer is an ASR model designed for processing long audio inputs effectivel
 - **Efficient Decoding on Low-Memory GPUs**: Chunkformer can **handle long-form transcription on GPUs with limited memory** without losing context or mismatching the training phase.
 - **Masked Batching Technique**: ChunkFormer efficiently **removes the need for padding in batches with highly variable lengths**.  For instance, **decoding a batch containing audio clips of 1 hour and 1 second costs only 1 hour + 1 second of computational and memory usage, instead of 2 hours due to padding.**
 
+| GPU Memory | Total Batch Duration (minutes) |
+|---|---|
+| 80GB | 980 |
+| 24GB | 240 |
+
 <a name = "installation" ></a>
 ## Installation
 #### Checkpoints

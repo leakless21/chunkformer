@@ -46,8 +46,7 @@ pip install -r requirements.txt
 <a name = "usage" ></a>
 ## Usage
 #### Training the Model
-Due to company policy, the training pipeline will not be shared publicly. However, we provide the implementation of the ChunkFormer model and pre-trained checkpoints on the LibriSpeech dataset for evaluation purposes.
-
+Due to company policy, the training pipeline, data pipeline, and model forward function will not be shared publicly. However, we provide the implementation of the ChunkFormer model and pre-trained checkpoints on public datasets.
 
 #### Long-Form Audio Testing
 To test the model with a single [long-form audio file](data/common_voice_vi_23397238.wav):

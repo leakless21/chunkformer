@@ -33,7 +33,7 @@ ChunkFormer is an ASR model designed for processing long audio inputs effectivel
 | Language | Model |
 |----------|-------|
 | Vietnamese  | [khanhld/chunkformer-large-vie](https://huggingface.co/khanhld/chunkformer-large-vie) |
-| English   | [khanhld/chunkformer-large-en-libri-960h]() |
+| English   | [khanhld/chunkformer-large-en-libri-960h](https://huggingface.co/khanhld/chunkformer-large-en-libri-960h) |
 
 
 #### Dependencies

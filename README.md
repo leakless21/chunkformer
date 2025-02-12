@@ -59,7 +59,7 @@ To test the model with a single [long-form audio file](data/common_voice_vi_2339
 python decode.py \
     --model_checkpoint path/to/local/hf/checkpoint/repo \
     --long_form_audio path/to/audio.wav \
-    --max_duration 14400 \ #in second, default is 1800
+    --total_batch_duration 14400 \ #in second, default is 1800
     --chunk_size 64 \
     --left_context_size 128 \
     --right_context_size 128
@@ -77,7 +77,7 @@ The [audio_list.tsv](data/audio_list.tsv) file must have at least one column nam
 python decode.py \
     --model_checkpoint path/to/local/hf/checkpoint/repo \
     --audio_list path/to/audio_list.tsv \
-    --max_duration 14400 \ #in second, default is 1800
+    --total_batch_duration 14400 \ #in second, default is 1800
     --chunk_size 64 \
     --left_context_size 128 \
     --right_context_size 128

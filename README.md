@@ -1,6 +1,6 @@
 # ChunkFormer: Masked Chunking Conformer For Long-Form Speech Transcription
 
-**ATTENTION: Input audio must be MONO (1 channel) at 16,000 sample rate** 
+**!!!ATTENTION: Input audio must be MONO (1 channel) at 16,000 sample rate** 
 
 This repository contains the implementation and supplementary materials for our ICASSP 2025 paper, **"ChunkFormer: Masked Chunking Conformer For Long-Form Speech Transcription"**. The paper has been fully accepted by the reviewers with scores: **4/4/4**.
 

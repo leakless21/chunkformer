@@ -233,7 +233,7 @@ def main():
 
     # Print the arguments
     print(f"Model Checkpoint: {args.model_checkpoint}")
-    print(f"Maximum Duration (in second): {args.total_batch_duration}")
+    print(f"Total Duration in a Batch (in second): {args.total_batch_duration}")
     print(f"Chunk Size: {args.chunk_size}")
     print(f"Left Context Size: {args.left_context_size}")
     print(f"Right Context Size: {args.right_context_size}")

@@ -14,9 +14,11 @@ from model.utils.init_model import init_model
 from model.utils.checkpoint import load_checkpoint
 from model.utils.file_utils import read_symbol_table
 from model.utils.ctc_utils import get_output_with_timestamps, get_output
+from contextlib import nullcontext
+from pydub import AudioSegment
 
 @torch.no_grad()
-def init(model_checkpoint):
+def init(model_checkpoint, device):
 
     config_path = os.path.join(model_checkpoint, "config.yaml")
     checkpoint_path = os.path.join(model_checkpoint, "pytorch_model.bin")
@@ -24,12 +26,12 @@ def init(model_checkpoint):
 
     with open(config_path, 'r') as fin:
         config = yaml.load(fin, Loader=yaml.FullLoader)
-    model = init_model(config)
+    model = init_model(config, config_path)
     model.eval()
     load_checkpoint(model , checkpoint_path)
 
-    model.encoder = model.encoder.cuda()
-    model.ctc = model.ctc.cuda()
+    model.encoder = model.encoder.to(device)
+    model.ctc = model.ctc.to(device)
     # print('the number of encoder params: {:,d}'.format(num_params))
 
     symbol_table = read_symbol_table(symbol_table_path)
@@ -37,13 +39,21 @@ def init(model_checkpoint):
 
     return model, char_dict
 
+def load_audio(audio_path):
+    audio = AudioSegment.from_file(audio_path)
+    audio = audio.set_frame_rate(16000)
+    audio = audio.set_sample_width(2)  # set bit depth to 16bit
+    audio = audio.set_channels(1)  # set to mono
+    audio = torch.as_tensor(audio.get_array_of_samples(), dtype=torch.float32).unsqueeze(0)
+    return audio
+
 @torch.no_grad()
 def endless_decode(args, model, char_dict):    
     def get_max_input_context(c, r, n):
         return r + max(c, r) * (n-1)
     
-    
-    wav_path = args.long_form_audio
+    device = next(model.parameters()).device
+    audio_path = args.long_form_audio
     # model configuration
     subsampling_factor = model.encoder.embed.subsampling_factor
     chunk_size = args.chunk_size
@@ -63,9 +73,8 @@ def endless_decode(args, model, char_dict):
     rel_right_context_size = rel_right_context_size * subsampling_factor
 
 
-    waveform, sample_rate = torchaudio.load(wav_path)
-    waveform = waveform * (1 << 15)
-    offset = torch.zeros(1, dtype=torch.int, device="cuda")
+    waveform = load_audio(audio_path)
+    offset = torch.zeros(1, dtype=torch.int, device=device)
 
     # waveform = padding(waveform, sample_rate)
     xs = kaldi.fbank(waveform,
@@ -77,14 +86,14 @@ def endless_decode(args, model, char_dict):
                             sample_frequency=16000).unsqueeze(0)
 
     hyps = []
-    att_cache = torch.zeros((model.encoder.num_blocks, left_context_size, model.encoder.attention_heads, model.encoder._output_size * 2 // model.encoder.attention_heads)).cuda()
-    cnn_cache = torch.zeros((model.encoder.num_blocks, model.encoder._output_size, conv_lorder)).cuda()    # print(context_size)
-    for idx, _ in enumerate(range(0, xs.shape[1], truncated_context_size * subsampling_factor)):
+    att_cache = torch.zeros((model.encoder.num_blocks, left_context_size, model.encoder.attention_heads, model.encoder._output_size * 2 // model.encoder.attention_heads)).to(device)
+    cnn_cache = torch.zeros((model.encoder.num_blocks, model.encoder._output_size, conv_lorder)).to(device)    # print(context_size)
+    for idx, _ in tqdm(list(enumerate(range(0, xs.shape[1], truncated_context_size * subsampling_factor)))):
         start = max(truncated_context_size * subsampling_factor * idx, 0)
         end = min(truncated_context_size * subsampling_factor * (idx+1) + 7, xs.shape[1])
 
         x = xs[:, start:end+rel_right_context_size]
-        x_len = torch.tensor([x[0].shape[0]], dtype=torch.int).cuda()
+        x_len = torch.tensor([x[0].shape[0]], dtype=torch.int).to(device)
 
         encoder_outs, encoder_lens, _, att_cache, cnn_cache, offset = model.encoder.forward_parallel_chunk(xs=x, 
                                                                     xs_origin_lens=x_len, 
@@ -104,7 +113,8 @@ def endless_decode(args, model, char_dict):
 
         hyp = model.encoder.ctc_forward(encoder_outs).squeeze(0)
         hyps.append(hyp)
-        torch.cuda.empty_cache()
+        if device.type == "cuda":
+            torch.cuda.empty_cache()
         if chunk_size * multiply_n * subsampling_factor * idx + rel_right_context_size >= xs.shape[1]:
             break
     hyps = torch.cat(hyps)
@@ -126,13 +136,13 @@ def batch_decode(args, model, char_dict):
     chunk_size = args.chunk_size
     left_context_size = args.left_context_size
     right_context_size = args.right_context_size
+    device = next(model.parameters()).device
 
     decodes = []
     xs = []
     xs_origin_lens = []
-    for idx, wav_path in tqdm(enumerate(df['wav'].to_list())):
-        waveform, sample_rate = torchaudio.load(wav_path)
-        waveform = waveform * (1 << 15)
+    for idx, audio_path in tqdm(enumerate(df['wav'].to_list())):
+        waveform = load_audio(audio_path)
         x = kaldi.fbank(waveform,
                                 num_mel_bins=80,
                                 frame_length=25,
@@ -146,8 +156,8 @@ def batch_decode(args, model, char_dict):
         max_frames -= xs_origin_lens[-1]
 
         if (max_frames <= 0) or (idx == len(df) - 1):
-            xs_origin_lens = torch.tensor(xs_origin_lens, dtype=torch.int, device="cuda")
-            offset = torch.zeros(len(xs), dtype=torch.int, device="cuda")
+            xs_origin_lens = torch.tensor(xs_origin_lens, dtype=torch.int, device=device)
+            offset = torch.zeros(len(xs), dtype=torch.int, device=device)
             encoder_outs, encoder_lens, n_chunks, _, _, _ = model.encoder.forward_parallel_chunk(xs=xs, 
                                                                         xs_origin_lens=xs_origin_lens, 
                                                                         chunk_size=chunk_size,
@@ -227,12 +237,28 @@ def main():
         action="store_true",
         help="Whether to use full attention with caching. If not provided, limited-chunk attention will be used (default: False)"
     )
+    parser.add_argument(
+        "--device",
+        type=torch.device,
+        default="cuda" if torch.cuda.is_available() else "cpu",
+        help="Device to run the model on (default: cuda if available else cpu)"
+    )
+    parser.add_argument(
+        "--autocast_dtype",
+        type=str,
+        choices=["fp32", "bf16", "fp16"],
+        default=None,
+        help="Dtype for autocast. If not provided, autocast is disabled by default."
+    )
 
     # Parse arguments
     args = parser.parse_args()
+    device = torch.device(args.device)
+    dtype = {"fp32": torch.float32, "bf16": torch.bfloat16, "fp16": torch.float16, None: None}[args.autocast_dtype]
 
     # Print the arguments
     print(f"Model Checkpoint: {args.model_checkpoint}")
+    print(f"Device: {device}")
     print(f"Total Duration in a Batch (in second): {args.total_batch_duration}")
     print(f"Chunk Size: {args.chunk_size}")
     print(f"Left Context Size: {args.left_context_size}")
@@ -243,15 +269,12 @@ def main():
     assert args.model_checkpoint is not None, "You must specify the path to the model"
     assert args.long_form_audio or args.audio_list, "`long_form_audio` or `audio_list` must be activated"
 
-    model, char_dict = init(args.model_checkpoint)
-    if args.long_form_audio:
-        endless_decode(args, model, char_dict)
-    else:
-        batch_decode(args, model, char_dict)
-
-
-    
-
+    model, char_dict = init(args.model_checkpoint, device)
+    with torch.autocast(device.type, dtype) if dtype is not None else nullcontext():
+        if args.long_form_audio:
+            endless_decode(args, model, char_dict)
+        else:
+            batch_decode(args, model, char_dict)
 
 if __name__ == "__main__":
     main()

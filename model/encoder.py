@@ -250,8 +250,8 @@ class BaseEncoder(torch.nn.Module):
                 mask_pad=mask_pad,
                 right_context_size=right_context_size,
                 left_context_size=left_context_size,
-                att_cache=att_cache[i].cuda() if att_cache.size(0) > 0 else att_cache,
-                cnn_cache=cnn_cache[i].cuda() if cnn_cache.size(0) > 0 else cnn_cache,
+                att_cache=att_cache[i].to(device) if att_cache.size(0) > 0 else att_cache,
+                cnn_cache=cnn_cache[i].to(device) if cnn_cache.size(0) > 0 else cnn_cache,
                 truncated_context_size=truncated_context_size
 
             )

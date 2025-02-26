@@ -19,11 +19,13 @@ from model.cmvn import GlobalCMVN
 from model.ctc import CTC
 from model.encoder import ChunkFormerEncoder
 from model.utils.cmvn import load_cmvn
+import os
 
 
-def init_model(configs):
+def init_model(configs, config_path):
     if configs['cmvn_file'] is not None:
-        mean, istd = load_cmvn(configs['cmvn_file'], configs['is_json_cmvn'])
+        cmvn_file = os.path.abspath(os.path.join(config_path, '..', '..', configs['cmvn_file']))
+        mean, istd = load_cmvn(cmvn_file, configs['is_json_cmvn'])
         global_cmvn = GlobalCMVN(
             torch.from_numpy(mean).float(),
             torch.from_numpy(istd).float())

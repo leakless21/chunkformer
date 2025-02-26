@@ -1,7 +1,5 @@
 # ChunkFormer: Masked Chunking Conformer For Long-Form Speech Transcription
 
-**!!!ATTENTION: Input audio must be MONO (1 channel) at 16,000 sample rate** 
-
 This repository contains the implementation and supplementary materials for our ICASSP 2025 paper, **"ChunkFormer: Masked Chunking Conformer For Long-Form Speech Transcription"**. The paper has been fully accepted by the reviewers with scores: **4/4/4**.
 
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/chunkformer-masked-chunking-conformer-for/speech-recognition-on-common-voice-vi)](https://paperswithcode.com/sota/speech-recognition-on-common-voice-vi?p=chunkformer-masked-chunking-conformer-for)
@@ -44,7 +42,7 @@ ChunkFormer is an ASR model designed for processing long audio inputs effectivel
 
 
 #### Dependencies
-To run the implementation, ensure you have the following dependencies installed:
+To run the implementation, ensure you have an environment with PyTorch working and the following dependencies installed:
 
 ```bash
 pip install -r requirements.txt
@@ -56,7 +54,7 @@ pip install -r requirements.txt
 Due to company policy, the training pipeline, data pipeline, and model forward function will not be shared publicly. However, we provide the implementation of the ChunkFormer model and pre-trained checkpoints on public datasets for evaluation purposes.
 
 #### Long-Form Audio Testing
-To test the model with a single [long-form audio file](data/common_voice_vi_23397238.wav):
+To test the model with a single [long-form audio file](data/common_voice_vi_23397238.wav). Audio file extensions ".mp3", ".wav", ".flac", ".m4a", ".aac" are accepted:
 ```bash
 python decode.py \
     --model_checkpoint path/to/local/hf/checkpoint/repo \

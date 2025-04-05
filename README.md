@@ -1,4 +1,8 @@
 # ChunkFormer: Masked Chunking Conformer For Long-Form Speech Transcription
+### ***UPDATE: 
+I'm currently working on an implementation intended for inclusion in the WeNet framework, allowing you to train the model on your own dataset. The process is in progress and will be available soon. Thank you!
+
+---
 
 This repository contains the implementation and supplementary materials for our ICASSP 2025 paper, **"ChunkFormer: Masked Chunking Conformer For Long-Form Speech Transcription"**. The paper has been fully accepted by the reviewers with scores: **4/4/4**.
 

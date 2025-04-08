@@ -6,8 +6,9 @@ I'm currently working on an implementation intended for inclusion in the WeNet f
 
 This repository contains the implementation and supplementary materials for our ICASSP 2025 paper, **"ChunkFormer: Masked Chunking Conformer For Long-Form Speech Transcription"**. The paper has been fully accepted by the reviewers with scores: **4/4/4**.
 
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/chunkformer-masked-chunking-conformer-for/speech-recognition-on-common-voice-vi)](https://paperswithcode.com/sota/speech-recognition-on-common-voice-vi?p=chunkformer-masked-chunking-conformer-for)
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/chunkformer-masked-chunking-conformer-for/speech-recognition-on-vivos)](https://paperswithcode.com/sota/speech-recognition-on-vivos?p=chunkformer-masked-chunking-conformer-for)
+[![Ranked #1: Speech Recognition on Common Voice Vi](https://img.shields.io/badge/Ranked%20%231%3A%20Speech%20Recognition%20on%20Common%20Voice%20Vi-%F0%9F%8F%86%20SOTA-blueviolet?style=for-the-badge&logo=paperswithcode&logoColor=white)](https://paperswithcode.com/sota/speech-recognition-on-common-voice-vietnamese)
+[![Ranked #1: Speech Recognition on VIVOS](https://img.shields.io/badge/Ranked%20%231%3A%20Speech%20Recognition%20on%20VIVOS-%F0%9F%8F%86%20SOTA-blueviolet?style=for-the-badge&logo=paperswithcode&logoColor=white)](https://paperswithcode.com/sota/speech-recognition-on-vivos)
+
 - [`paper.pdf`](docs/paper.pdf): The ICASSP 2025 paper describing ChunkFormer.
 - [`reviews.pdf`](docs/chunkformer_reviews.pdf): Reviewers' feedback from the ICASSP review process.
 - [`rebuttal.pdf`](docs/rebuttal.pdf): Our rebuttal addressing reviewer concerns.
@@ -98,12 +99,17 @@ WER: 0.1234
 If you use this work in your research, please cite:
 
 ```bibtex
-@inproceedings{chunkformer,
-  title={ChunkFormer: Masked Chunking Conformer For Long-Form Speech Transcription},
-  author={Khanh Le, Tuan Vu Ho, Dung Tran and Duc Thanh Chau},
-  booktitle={ICASSP},
-  year={2025}
-}
+@INPROCEEDINGS{10888640,
+  author={Le, Khanh and Ho, Tuan Vu and Tran, Dung and Chau, Duc Thanh},
+  booktitle={ICASSP 2025 - 2025 IEEE International Conference on Acoustics, Speech and Signal Processing (ICASSP)}, 
+  title={ChunkFormer: Masked Chunking Conformer For Long-Form Speech Transcription}, 
+  year={2025},
+  volume={},
+  number={},
+  pages={1-5},
+  keywords={Scalability;Memory management;Graphics processing units;Signal processing;Performance gain;Hardware;Resource management;Speech processing;Standards;Context modeling;chunkformer;masked batch;long-form transcription},
+  doi={10.1109/ICASSP49660.2025.10888640}}
+
 ```
 
 <a name = "acknowledgments" ></a>

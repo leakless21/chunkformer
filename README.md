@@ -1,7 +1,4 @@
 # ChunkFormer: Masked Chunking Conformer For Long-Form Speech Transcription
-### ***UPDATE: 
-I'm currently working on an implementation intended for inclusion in the WeNet framework, allowing you to train the model on your own dataset. The process is in progress and will be available soon. Thank you!
-
 ---
 
 This repository contains the implementation and supplementary materials for our ICASSP 2025 paper, **"ChunkFormer: Masked Chunking Conformer For Long-Form Speech Transcription"**. The paper has been fully accepted by the reviewers with scores: **4/4/4**.
@@ -56,7 +53,7 @@ pip install -r requirements.txt
 <a name = "usage" ></a>
 ## Usage
 #### Training the Model
-Due to company policy, the training pipeline, data pipeline, and model forward function will not be shared publicly. However, we provide the implementation of the ChunkFormer model and pre-trained checkpoints on public datasets for evaluation purposes.
+For training/finetuning, follow this [PR](https://github.com/wenet-e2e/wenet/pull/2723).
 
 #### Long-Form Audio Testing
 To test the model with a single [long-form audio file](data/common_voice_vi_23397238.wav). Audio file extensions ".mp3", ".wav", ".flac", ".m4a", ".aac" are accepted:

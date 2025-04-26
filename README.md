@@ -3,7 +3,7 @@
 
 This repository contains the implementation and supplementary materials for our ICASSP 2025 paper, **"ChunkFormer: Masked Chunking Conformer For Long-Form Speech Transcription"**. The paper has been fully accepted by the reviewers with scores: **4/4/4**.
 
-[![Ranked #1: Speech Recognition on Common Voice Vi](https://img.shields.io/badge/Ranked%20%231%3A%20Speech%20Recognition%20on%20Common%20Voice%20Vi-%F0%9F%8F%86%20SOTA-blueviolet?style=for-the-badge&logo=paperswithcode&logoColor=white)](https://paperswithcode.com/sota/speech-recognition-on-common-voice-vietnamese)
+[![Ranked #1: Speech Recognition on Common Voice Vi](https://img.shields.io/badge/Ranked%20%231%3A%20Speech%20Recognition%20on%20Common%20Voice%20Vi-%F0%9F%8F%86%20SOTA-blueviolet?style=for-the-badge&logo=paperswithcode&logoColor=white)]([https://paperswithcode.com/sota/speech-recognition-on-common-voice-vietnamese](https://paperswithcode.com/sota/speech-recognition-on-common-voice-vi))
 [![Ranked #1: Speech Recognition on VIVOS](https://img.shields.io/badge/Ranked%20%231%3A%20Speech%20Recognition%20on%20VIVOS-%F0%9F%8F%86%20SOTA-blueviolet?style=for-the-badge&logo=paperswithcode&logoColor=white)](https://paperswithcode.com/sota/speech-recognition-on-vivos)
 
 - [`paper.pdf`](docs/paper.pdf): The ICASSP 2025 paper describing ChunkFormer.

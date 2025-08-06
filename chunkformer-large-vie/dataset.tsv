@@ -1,0 +1,15 @@
+		
+data	Estimated hour	Link
+AILAB-VNUHCM/vivos	15	https://huggingface.co/datasets/AILAB-VNUHCM/vivos
+doof-ferb/vlsp2020_vinai_100h	100	https://huggingface.co/datasets/doof-ferb/vlsp2020_vinai_100h
+doof-ferb/fpt_fosd	100	https://huggingface.co/datasets/doof-ferb/fpt_fosd
+doof-ferb/infore1_25hours	25	https://huggingface.co/datasets/doof-ferb/infore1_25hours
+linhtran92/viet_bud500	500	https://huggingface.co/datasets/linhtran92/viet_bud500
+doof-ferb/LSVSC	100	https://huggingface.co/datasets/doof-ferb/LSVSC
+doof-ferb/vais1000	2	https://huggingface.co/datasets/doof-ferb/vais1000
+doof-ferb/VietMed_labeled	3	https://huggingface.co/datasets/doof-ferb/VietMed_labeled
+NhutP/VSV-1100	1100	https://huggingface.co/datasets/NhutP/VSV-1100
+doof-ferb/Speech-MASSIVE_vie	1	https://huggingface.co/datasets/doof-ferb/Speech-MASSIVE_vie
+doof-ferb/BibleMMS_vie	1	https://huggingface.co/datasets/doof-ferb/BibleMMS_vie
+capleaf/viVoice	1000	https://huggingface.co/datasets/capleaf/viVoice
+linhtran92/viet_youtube_asr_corpus_v2	100	https://huggingface.co/datasets/linhtran92/viet_youtube_asr_corpus_v2

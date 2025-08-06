@@ -1,0 +1,33 @@
+encoder: chunkformer
+is_json_cmvn: true
+cmvn_file: chunkformer-large-vie/global_cmvn
+input_dim: 80
+output_dim: 6992
+
+encoder_conf:
+    output_size: 512    # dimension of attention
+    attention_heads: 8
+    linear_units: 2048  # the number of units of position-wise feed forward
+    num_blocks: 17      # the number of encoder blocks
+    dropout_rate: 0.1
+    positional_dropout_rate: 0.1
+    attention_dropout_rate: 0.1
+    input_layer: 'depthwise' # encoder input type, you can chose conv2d, conv2d6 and conv2d8
+    normalize_before: true
+    cnn_module_kernel: 15
+    use_cnn_module: true
+    activation_type: 'swish'
+    pos_enc_layer_type: 'stream_rel_pos'
+    selfattention_layer_type: 'stream_rel_selfattn'
+    causal: false
+    use_dynamic_chunk: false
+    use_limited_chunk: false
+    use_context_hint_chunk: false
+    right_context_probs: [0.75]
+    right_context_sizes: [128, 128, 128]
+    limited_decoding_chunk_sizes: [64, 128, 256]
+    limited_left_chunk_sizes: [128, 256, 128]
+    cnn_module_norm: 'layer_norm' # using nn.LayerNorm makes model converge faster
+    use_dynamic_left_chunk: false
+    use_dynamic_conv: true
+    freeze_subsampling_layer: false

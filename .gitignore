@@ -18,6 +18,9 @@ benchmark_duration.py
 
 # Distribution / packaging
 .Python
+# Model weights
+chunkformer-large-vie/pytorch_model.bin
+chunkformer-large-vie/global_cmvn
 env/
 build/
 develop-eggs/

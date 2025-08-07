@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import Dict, List, Optional, Tuple
 
 import torch
-import logging
+from loguru import logger
 
 from torch.nn.utils.rnn import pad_sequence
 from model.ctc import CTC

@@ -3,6 +3,8 @@ import os
 import subprocess
 import sys
 import questionary
+from loguru import logger
+from model.utils.logging import setup_logger
 
 def run_decode_command(args):
     """
@@ -26,26 +28,27 @@ def run_decode_command(args):
     else:  # batch mode
         command.extend(["--audio_list", args.audio_list])
 
-    print("Executing command:", " ".join(command))
+    logger.info("Executing command: {}", " ".join(command))
     try:
         process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1, universal_newlines=True)
         if process.stdout:
             for line in process.stdout:
-                print(line, end="")
+                logger.info(line.rstrip())
         process.wait()
         if process.returncode != 0:
-            print(f"Command failed with exit code {process.returncode}")
+            logger.error("Command failed with exit code {}", process.returncode)
         else:
-            print("Command executed successfully.")
+            logger.success("Command executed successfully.")
     except FileNotFoundError:
-        print("Error: decode.py not found. Make sure you are running this script from the project root.")
+        logger.error("Error: decode.py not found. Make sure you are running this script from the project root.")
     except Exception as e:
-        print(f"An error occurred: {e}")
+        logger.error("An error occurred: {}", e)
 
 def main():
     """
     Main function to run the CLI questionnaire.
     """
+    setup_logger('development')
     # Mode Selection
     mode = questionary.select(
         "Select transcription mode:",
@@ -62,7 +65,7 @@ def main():
         default="chunkformer-large-vie"
     ).ask()
     while not os.path.isdir(args.model_checkpoint):
-        print(f"Error: Model checkpoint path '{args.model_checkpoint}' not found or is not a directory.")
+        logger.error("Error: Model checkpoint path '{}' not found or is not a directory.", args.model_checkpoint)
         args.model_checkpoint = questionary.text(
             "Path to the model checkpoint:",
             default="chunkformer-large-vie"
@@ -71,13 +74,13 @@ def main():
     if args.mode == "single":
         args.long_form_audio = questionary.path("Path to the long-form audio file:").ask()
         while not os.path.isfile(args.long_form_audio):
-            print(f"Error: Audio file '{args.long_form_audio}' not found.")
+            logger.error("Error: Audio file '{}' not found.", args.long_form_audio)
             args.long_form_audio = questionary.path("Path to the long-form audio file:").ask()
         args.audio_list = None
     else:  # batch mode
         args.audio_list = questionary.path("Path to the TSV file containing audio list:").ask()
         while not os.path.isfile(args.audio_list):
-            print(f"Error: Audio list TSV file '{args.audio_list}' not found.")
+            logger.error("Error: Audio list TSV file '{}' not found.", args.audio_list)
             args.audio_list = questionary.path("Path to the TSV file containing audio list:").ask()
         args.long_form_audio = None
 
@@ -132,26 +135,26 @@ def main():
         default=False
     ).ask()
 
-    print("\n--- Configuration Summary ---")
-    print(f"Mode: {mode}")
-    print(f"Model Checkpoint: {args.model_checkpoint}")
+    logger.info("\n--- Configuration Summary ---")
+    logger.info("Mode: {}", mode)
+    logger.info("Model Checkpoint: {}", args.model_checkpoint)
     if args.mode == "single":
-        print(f"Long Form Audio: {args.long_form_audio}")
+        logger.info("Long Form Audio: {}", args.long_form_audio)
     else:
-        print(f"Audio List: {args.audio_list}")
-    print(f"Total Batch Duration: {args.total_batch_duration}")
-    print(f"Chunk Size: {args.chunk_size}")
-    print(f"Left Context Size: {args.left_context_size}")
-    print(f"Right Context Size: {args.right_context_size}")
-    print(f"Device: {args.device}")
-    print(f"Autocast Dtype: {args.autocast_dtype}")
-    print(f"Full Attention: {args.full_attn}")
-    print("---------------------------\n")
+        logger.info("Audio List: {}", args.audio_list)
+    logger.info("Total Batch Duration: {}", args.total_batch_duration)
+    logger.info("Chunk Size: {}", args.chunk_size)
+    logger.info("Left Context Size: {}", args.left_context_size)
+    logger.info("Right Context Size: {}", args.right_context_size)
+    logger.info("Device: {}", args.device)
+    logger.info("Autocast Dtype: {}", args.autocast_dtype)
+    logger.info("Full Attention: {}", args.full_attn)
+    logger.info("---------------------------\n")
 
     if questionary.confirm("Proceed with transcription?", default=True).ask():
         run_decode_command(args)
     else:
-        print("Transcription cancelled.")
+        logger.info("Transcription cancelled.")
 
 if __name__ == "__main__":
     main()

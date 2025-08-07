@@ -17,6 +17,10 @@ The Transcription API provides endpoints for:
 
 Under the hood, the service initializes a speech recognition model at application startup and uses decoding utilities to produce text transcriptions from audio inputs.
 
+Note on timestamps
+
+- All successful JSON responses now include a "timestamp" string in ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ). This applies to /transcribe_audio/, /batch-transcribe, /transcribe/status/{task_id}, /cache/cleanup, and /cache/status.
+
 ## Endpoints
 
 Base URL
@@ -55,6 +59,12 @@ Supported audio formats
 
 Response
 
+- Body (JSON):
+  {
+  "status": "completed",
+  "transcription": "The full transcribed text of the audio file as a single string.",
+  "timestamp": "2025-08-07T09:14:15.983Z"
+  }
 - Status: `200 OK`
 - Body (JSON):
   {
@@ -78,6 +88,12 @@ Error Responses
   }
 
 Example (curl)
+Successful response:
+{
+"status": "completed",
+"transcription": "hello world, this is a complete example transcription from start to finish.",
+"timestamp": "2025-08-07T09:14:15.983Z"
+}
 
 - Upload a single WAV file:
   curl -X POST http://localhost:8000/transcribe_audio/ \
@@ -101,7 +117,12 @@ Description
 
 - Accepts multiple files, starts background processing, and immediately returns a `task_id`. Use the status endpoint to retrieve task status and results.
 
-Headers
+- Body (JSON):
+  {
+  "task_id": "a_unique_task_id",
+  "timestamp": "2025-08-07T09:14:15.983Z"
+  }
+  Headers
 
 - `Content-Type: multipart/form-data`
 - `
@@ -151,6 +172,16 @@ Accepted response:
 
 HTTP
 
+- Body (JSON):
+  {
+  "status": "completed" | "pending" | "processing" | "failed",
+  "results": [
+  { "filename": "test1.wav", "transcription": "..." },
+  { "filename": "test2.wav", "transcription": "..." }
+  ],
+  "errors": [ "error text if any" ],
+  "timestamp": "2025-08-07T09:14:15.983Z"
+  }
 - Method: GET
 - URL: `/transcribe/status/{task_id}`
 
@@ -176,6 +207,16 @@ Response (Success)
   { "filename": "test1.wav", "transcription": "..." },
   { "filename": "test2.wav", "transcription": "..." }
   ],
+  Successful completed response:
+  {
+  "status": "completed",
+  "results": [
+  { "filename": "test1.wav", "transcription": "..." },
+  { "filename": "test2.wav", "transcription": "..." }
+  ],
+  "errors": [],
+  "timestamp": "2025-08-07T09:14:15.983Z"
+  }
   "errors": [ "error text if any" ]
   }
 

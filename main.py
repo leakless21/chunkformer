@@ -1,5 +1,9 @@
+from loguru import logger
+from model.utils.logging import setup_logger
+
 def main():
-    print("Hello from chunkformer!")
+    setup_logger('development')
+    logger.info("Hello from chunkformer!")
 
 
 if __name__ == "__main__":

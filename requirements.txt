@@ -7,3 +7,4 @@ jiwer
 huggingface_hub
 colorama
 pydub
+loguru

@@ -8,6 +8,7 @@ dependencies = [
     "colorama>=0.4.6",
     "huggingface-hub>=0.34.3",
     "jiwer>=4.0.0",
+    "litestar[standard]>=2.0.0",
     "pandas>=2.3.1",
     "pillow>=11.3.0",
     "pydub>=0.25.1",
@@ -18,10 +19,18 @@ dependencies = [
     "torch>=2.7.1",
     "torchaudio>=2.7.1",
     "torchvision>=0.22.1",
+    "uvicorn>=0.30.0",
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0.0",
+    "httpx>=0.24.0",
 ]
 
 [project.scripts]
 chunkformer = "cli:main"
+api = "run_api:main"
 
 [build-system]
 requires = ["setuptools>=61.0"]
@@ -30,3 +39,6 @@ build-backend = "setuptools.build_meta"
 [tool.setuptools.packages.find]
 include = ["model"]
 exclude = ["data*"]
+
+[tool.setuptools]
+py-modules = ["cli", "api", "decode", "run_api"]

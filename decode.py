@@ -120,10 +120,15 @@ def endless_decode(args, model, char_dict):
     hyps = torch.cat(hyps)
     decode = get_output_with_timestamps([hyps], char_dict)[0]
 
+    transcription_segments = []
     for item in decode:
         start = f"{Fore.RED}{item['start']}{Style.RESET_ALL}"
         end = f"{Fore.RED}{item['end']}{Style.RESET_ALL}"
         print(f"{start} - {end}: {item['decode']}")
+        transcription_segments.append(item['decode'])
+
+    full_transcription = "".join(transcription_segments)
+    return full_transcription
 
 
 @torch.no_grad()
@@ -278,4 +283,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

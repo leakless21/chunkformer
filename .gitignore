@@ -9,6 +9,9 @@ tokenizer/
 data/4397800.wav
 benchmark_duration.py
 
+# API cache directory
+cache/
+
 # Python bytecode
 *.py[cod]
 *$py.class
@@ -100,3 +103,5 @@ docs/*.png
 *.tmp
 
 *.mp3
+*.m4a
+*.wav

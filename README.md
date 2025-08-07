@@ -17,6 +17,9 @@ This repository contains the implementation and supplementary materials for our 
 - [Key Features](#key-features)
 - [Installation](#installation)
 - [Usage](#usage)
+  - [Command-Line Interface (CLI)](#command-line-interface-cli)
+  - [API Server](#api-server)
+  - [Manual Execution](#manual-execution)
 - [Citation](#citation)
 - [Acknowledgments](#acknowledgments)
 
@@ -63,9 +66,45 @@ pip install -r requirements.txt
 
 ## Usage
 
-#### Training the Model
+This project provides three ways to transcribe audio files:
 
-For training/finetuning, follow this [PR](https://github.com/wenet-e2e/wenet/pull/2723).
+1.  **Command-Line Interface (CLI)**: An interactive CLI for a user-friendly experience.
+2.  **API Server**: A RESTful API for programmatic access to the transcription service.
+3.  **Manual Execution**: Direct execution of the `decode.py` script for more control over the transcription process.
+
+### Command-Line Interface (CLI)
+
+For a more user-friendly experience, you can use the interactive CLI to guide you through the transcription process. To run the CLI, use the following command:
+
+```bash
+uv run chunkformer
+```
+
+The CLI will prompt you to select the transcription mode (single file or batch) and enter the necessary parameters.
+
+### API Server
+
+This project includes a RESTful API for transcribing audio files. To run the API server, use the following command:
+
+```bash
+uv run api
+```
+
+The API server will be available at `http://localhost:8080`. You can use the following endpoints to transcribe audio files:
+
+*   `POST /transcribe_audio/`: Transcribe a single audio file.
+*   `POST /batch-transcribe`: Transcribe multiple audio files asynchronously.
+*   `GET /task-status/{task_id}`: Get the status of a batch transcription task.
+
+For more detailed information about the API, you can access the auto-generated documentation:
+
+*   **Swagger UI**: [http://localhost:8080/schema/swagger](http://localhost:8080/schema/swagger)
+*   **Redoc**: [http://localhost:8080/schema/redoc](http://localhost:8080/schema/redoc)
+*   **Stoplight Elements**: [http://localhost:8080/schema/elements](http://localhost:8080/schema/elements)
+
+### Manual Execution
+
+You can also run the `decode.py` script directly for more control over the transcription process.
 
 #### Long-Form Audio Testing
 
@@ -108,16 +147,6 @@ Example Output:
 WER: 0.1234
 ```
 
-## Interactive CLI
-
-For a more user-friendly experience, you can use the interactive CLI to guide you through the transcription process. To run the CLI, use the following command:
-
-```bash
-uv run chunkformer
-```
-
-## The CLI will prompt you to select the transcription mode (single file or batch) and enter the necessary parameters.
-
 <a name = "citation" ></a>
 
 ## Citation
@@ -145,5 +174,3 @@ If you use this work in your research, please cite:
 We would like to thank Zalo for providing resources and support for training the model. This work was completed during my tenure at Zalo.
 
 This implementation is based on the WeNet framework. We extend our gratitude to the WeNet development team for providing an excellent foundation for speech recognition research and development.
-
----

@@ -45,7 +45,90 @@ def test_transcribe_audio_success(client):
         files={"data": ("sample.wav", b"fakebytes", "audio/wav")}
     )
     assert response.status_code == 201  # POST endpoints typically return 201 (Created)
-    assert response.json() == {"transcription": "dummy transcription"}
+    body = response.json()
+    assert isinstance(body, dict)
+    assert "transcription" in body
+    assert body["transcription"] == "dummy transcription"
+def test_transcribe_audio_segments_structure(client, monkeypatch):
+    """
+    Verify that the single-file transcription endpoint returns a list of segments,
+    with each segment containing start, end, and decode keys with correct types.
+    """
+    # Make endless_decode return a list of segments with numeric start/end and string decode
+    segments = [
+        {"start": 0.0, "end": 1.25, "decode": "hello"},
+        {"start": 1.25, "end": 2.5, "decode": "world"},
+    ]
+    monkeypatch.setattr(api, "endless_decode", lambda *args, **kwargs: segments)
+
+    response = client.post(
+        "/transcribe_audio/",
+        files={"data": ("sample.wav", b"fakebytes", "audio/wav")}
+    )
+    assert response.status_code == 201
+
+    body = response.json()
+    # 1) Response is list of dicts (transcription key contains the list)
+    assert isinstance(body, dict)
+    assert "transcription" in body
+    assert isinstance(body["transcription"], list)
+    assert all(isinstance(seg, dict) for seg in body["transcription"])
+
+    # 2) Each dict contains start, end, decode
+    for seg in body["transcription"]:
+        assert set(["start", "end", "decode"]).issubset(seg.keys())
+
+    # 3) Types: start/end are numbers, decode is string
+    for seg in body["transcription"]:
+        assert isinstance(seg["start"], (int, float))
+        assert isinstance(seg["end"], (int, float))
+        assert isinstance(seg["decode"], str)
+
+
+def test_batch_transcription_segments_structure(client, monkeypatch, tmp_path):
+    """
+    Verify that the batch transcription status payload returns segments per file with the
+    correct structure and types when processing is completed.
+    """
+    # Patch background processor to immediately mark task as completed with segments
+    async def immediate_process(task_id, files):
+        api.task_store[task_id]["status"] = "completed"
+        api.task_store[task_id]["results"] = [
+            {
+                "filename": f.filename or "file.wav",
+                "segments": [
+                    {"start": 0, "end": 2, "decode": "foo"},
+                    {"start": 2.0, "end": 4.5, "decode": "bar"},
+                ],
+            }
+            for f in files
+        ]
+
+    monkeypatch.setattr(api, "process_batch_files", immediate_process)
+
+    files = [("data", ("sample1.wav", b"fakebytes", "audio/wav"))]
+    upload_resp = client.post("/batch-transcribe", files=files)
+    assert upload_resp.status_code == 201
+    task_id = upload_resp.json()["task_id"]
+
+    poll_resp = client.get(f"/task-status/{task_id}")
+    assert poll_resp.status_code == 200
+    body = poll_resp.json()
+
+    assert body["status"] == "completed"
+    assert isinstance(body["results"], list)
+    assert len(body["results"]) >= 1
+    first = body["results"][0]
+    # results should contain segments list
+    assert "segments" in first
+    assert isinstance(first["segments"], list)
+    assert all(isinstance(seg, dict) for seg in first["segments"])
+
+    for seg in first["segments"]:
+        assert set(["start", "end", "decode"]).issubset(seg.keys())
+        assert isinstance(seg["start"], (int, float))
+        assert isinstance(seg["end"], (int, float))
+        assert isinstance(seg["decode"], str)
 
 
 def test_transcribe_audio_no_file(client):

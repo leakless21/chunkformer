@@ -68,16 +68,28 @@ def create_temp_audio_file(content: bytes, filename: str) -> Path:
 
 def startup_handler() -> None:
     """Initialize the model on application startup."""
+    import os
     global model, char_dict
-    
+
+    # Avoid heavy initialization in the uvicorn reloader parent process.
+    # When uvicorn --reload is used, a parent "reloader" process is created that
+    # imports the app, then spawns the actual worker process with RUN_MAIN="true".
+    # Initializing torch/model in the reloader can leak semaphores on shutdown.
+    run_main = os.environ.get("RUN_MAIN") == "true" or os.environ.get("WATCHFILES_RELOADER") == "true"
+
     # Initialize cache directories
     ensure_cache_directories()
     logger.info(f"Cache directories initialized at {CACHE_DIR}")
-    
+
     # Clean up old cache files
     cleanup_old_cache_files()
-    
-    # Load model
+
+    if not run_main:
+        logger.warning("Detected uvicorn reload parent process; skipping model initialization to prevent semaphore leaks. "
+                       "Model will be initialized only in the main worker process.")
+        return
+
+    # Load model only in the main worker
     model_checkpoint = config['model']['checkpoint']
     if not Path(model_checkpoint).is_dir():
         raise FileNotFoundError(f"Model checkpoint directory not found at {model_checkpoint}")
@@ -259,6 +271,18 @@ async def get_cache_status() -> Dict:
         raise HTTPException(detail=f"Failed to get cache status: {str(e)}", status_code=HTTP_500_INTERNAL_SERVER_ERROR)
 
 
+
+import atexit
+
+def _cleanup_resources():
+    # Placeholder for future explicit cleanup if needed
+    # (e.g., closing torch multiprocessing pools or shared memory)
+    try:
+        logger.info("Shutting down API - cleanup hook executed")
+    except Exception:
+        pass
+
+atexit.register(_cleanup_resources)
 
 app = Litestar(
     route_handlers=[transcribe_file, batch_transcribe_files, get_task_status, cleanup_cache, get_cache_status],

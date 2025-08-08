@@ -50,27 +50,7 @@ This document outlines the API design for the chunkformer transcription service,
   - **Headers:**
     - `X-API-Key: <your_api_key>`
 - **Response:**
-  - **Status Code:** `200 OK`
-  - **API Response**
-    - The standard success response includes:
-      - `timestamp` (string, ISO 8601): The timestamp of the response in ISO 8601 format (YYYY-MM-DDTHH:mm:ss.sssZ).
-  - **Body:**
-    ```json
-    {
-      "task_id": "a_unique_task_id",
-      "status": "completed", // or "pending", "processing", "failed"
-      "results": [
-        {
-          "filename": "test1.wav",
-          "transcription": "The transcribed text of test1.wav."
-        },
-        {
-          "filename": "test2.wav",
-          "transcription": "The transcribed text of test2.wav."
-        }
-      ]
-    }
-    ```
+  - **Status Code:** `200 OK`\n - **API Response**\n - The standard success response includes a list of transcription segments for each file. Each segment is an object with:\n - `start` (number, seconds): The start time of the segment within the audio.\n - `end` (number, seconds): The end time of the segment within the audio.\n - `decode` (string): The decoded transcript text for the segment.\n - **Body:**\n `json\n    {\n      "task_id": "a_unique_task_id",\n      "status": "completed",\n      "results": [\n        {\n          "filename": "test1.wav",\n          "segments": [\n            { \"start\": 0.00, \"end\": 2.35, \"decode\": \"hello world\" },\n            { \"start\": 2.35, \"end\": 4.90, \"decode\": \"this is a test\" }\n          ]\n        },\n        {\n          "filename": "test2.wav",\n          "segments": [\n            { \"start\": 0.00, \"end\": 1.20, \"decode\": \"foo bar\" }\n          ]\n        }\n      ]\n    }\n    `
 
 ## 3. Data Flow
 

@@ -8,8 +8,6 @@ import pandas as pd
 
 from tqdm import tqdm
 from colorama import Fore, Style
-from loguru import logger
-from model.utils.logging import setup_logger
 
 import torchaudio.compliance.kaldi as kaldi
 from model.utils.init_model import init_model
@@ -18,7 +16,6 @@ from model.utils.file_utils import read_symbol_table
 from model.utils.ctc_utils import get_output_with_timestamps, get_output
 from contextlib import nullcontext
 from pydub import AudioSegment
-from model.utils.config import config
 
 @torch.no_grad()
 def init(model_checkpoint, device):
@@ -28,8 +25,8 @@ def init(model_checkpoint, device):
     symbol_table_path = os.path.join(model_checkpoint, "vocab.txt")
 
     with open(config_path, 'r') as fin:
-        model_config = yaml.load(fin, Loader=yaml.FullLoader)
-    model = init_model(model_config, config_path)
+        config = yaml.load(fin, Loader=yaml.FullLoader)
+    model = init_model(config, config_path)
     model.eval()
     load_checkpoint(model , checkpoint_path)
 
@@ -44,9 +41,9 @@ def init(model_checkpoint, device):
 
 def load_audio(audio_path):
     audio = AudioSegment.from_file(audio_path)
-    audio = audio.set_frame_rate(config['audio']['frame_rate'])
-    audio = audio.set_sample_width(config['audio']['sample_width'])  # set bit depth to 16bit
-    audio = audio.set_channels(config['audio']['channels'])  # set to mono
+    audio = audio.set_frame_rate(16000)
+    audio = audio.set_sample_width(2)  # set bit depth to 16bit
+    audio = audio.set_channels(1)  # set to mono
     audio = torch.as_tensor(audio.get_array_of_samples(), dtype=torch.float32).unsqueeze(0)
     return audio
 
@@ -59,13 +56,13 @@ def endless_decode(args, model, char_dict):
     audio_path = args.long_form_audio
     # model configuration
     subsampling_factor = model.encoder.embed.subsampling_factor
-    chunk_size = config['model']['chunk_size']
-    left_context_size = config['model']['left_context_size']
-    right_context_size = config['model']['right_context_size']
+    chunk_size = args.chunk_size
+    left_context_size = args.left_context_size
+    right_context_size = args.right_context_size
     conv_lorder = model.encoder.cnn_module_kernel // 2
 
     # get the maximum length that the gpu can consume
-    max_length_limited_context = config['model']['total_batch_duration']
+    max_length_limited_context = args.total_batch_duration
     max_length_limited_context = int((max_length_limited_context // 0.01))//2 # in 10ms second
 
     multiply_n = max_length_limited_context // chunk_size // subsampling_factor
@@ -81,12 +78,12 @@ def endless_decode(args, model, char_dict):
 
     # waveform = padding(waveform, sample_rate)
     xs = kaldi.fbank(waveform,
-                            num_mel_bins=config['features']['num_mel_bins'],
-                            frame_length=config['features']['frame_length'],
-                            frame_shift=config['features']['frame_shift'],
-                            dither=config['features']['dither'],
-                            energy_floor=config['features']['energy_floor'],
-                            sample_frequency=config['features']['sample_frequency']).unsqueeze(0)
+                            num_mel_bins=80,
+                            frame_length=25,
+                            frame_shift=10,
+                            dither=0.0,
+                            energy_floor=0.0,
+                            sample_frequency=16000).unsqueeze(0)
 
     hyps = []
     att_cache = torch.zeros((model.encoder.num_blocks, left_context_size, model.encoder.attention_heads, model.encoder._output_size * 2 // model.encoder.attention_heads)).to(device)
@@ -126,21 +123,19 @@ def endless_decode(args, model, char_dict):
     for item in decode:
         start = f"{Fore.RED}{item['start']}{Style.RESET_ALL}"
         end = f"{Fore.RED}{item['end']}{Style.RESET_ALL}"
-        logger.info("{} - {}: {}", start, end, item['decode'])
-
-    return decode
+        print(f"{start} - {end}: {item['decode']}")
 
 
 @torch.no_grad()
 def batch_decode(args, model, char_dict):
     df = pd.read_csv(args.audio_list, sep="\t")
 
-    max_length_limited_context = config['model']['total_batch_duration']
+    max_length_limited_context = args.total_batch_duration
     max_length_limited_context = int((max_length_limited_context // 0.01)) // 2 # in 10ms second    xs = []
     max_frames = max_length_limited_context
-    chunk_size = config['model']['chunk_size']
-    left_context_size = config['model']['left_context_size']
-    right_context_size = config['model']['right_context_size']
+    chunk_size = args.chunk_size
+    left_context_size = args.left_context_size
+    right_context_size = args.right_context_size
     device = next(model.parameters()).device
 
     decodes = []
@@ -149,12 +144,12 @@ def batch_decode(args, model, char_dict):
     for idx, audio_path in tqdm(enumerate(df['wav'].to_list())):
         waveform = load_audio(audio_path)
         x = kaldi.fbank(waveform,
-                                num_mel_bins=config['features']['num_mel_bins'],
-                                frame_length=config['features']['frame_length'],
-                                frame_shift=config['features']['frame_shift'],
-                                dither=config['features']['dither'],
-                                energy_floor=config['features']['energy_floor'],
-                                sample_frequency=config['features']['sample_frequency'])
+                                num_mel_bins=80,
+                                frame_length=25,
+                                frame_shift=10,
+                                dither=0.0,
+                                energy_floor=0.0,
+                                sample_frequency=16000)
 
         xs.append(x)
         xs_origin_lens.append(x.shape[0])
@@ -184,15 +179,12 @@ def batch_decode(args, model, char_dict):
     df['decode'] = decodes
     if "txt" in df:
         wer = jiwer.wer(df["txt"].to_list(), decodes)
-        logger.info("WER: {}", wer)
+        print("WER: ", wer)
     df.to_csv(args.audio_list, sep="\t", index=False)
 
 
 
 def main():
-    # Setup logger
-    setup_logger('development')
-    
     # Create argument parser
     parser = argparse.ArgumentParser(description="Process arguments with default values.")
 
@@ -206,25 +198,25 @@ def main():
     parser.add_argument(
         "--total_batch_duration", 
         type=int, 
-        default=config['model']['total_batch_duration'], 
+        default=1800, 
         help="The total audio duration (in second) in a batch that your GPU memory can handle at once. Default is 1800s"
     )
     parser.add_argument(
         "--chunk_size", 
         type=int, 
-        default=config['model']['chunk_size'], 
+        default=64, 
         help="Size of the chunks (default: 64)"
     )
     parser.add_argument(
         "--left_context_size", 
         type=int, 
-        default=config['model']['left_context_size'], 
+        default=128, 
         help="Size of the left context (default: 128)"
     )
     parser.add_argument(
         "--right_context_size", 
         type=int, 
-        default=config['model']['right_context_size'], 
+        default=128, 
         help="Size of the right context (default: 128)"
     )
     parser.add_argument(
@@ -264,15 +256,15 @@ def main():
     device = torch.device(args.device)
     dtype = {"fp32": torch.float32, "bf16": torch.bfloat16, "fp16": torch.float16, None: None}[args.autocast_dtype]
 
-    # Log the arguments
-    logger.info("Model Checkpoint: {}", args.model_checkpoint)
-    logger.info("Device: {}", device)
-    logger.info("Total Duration in a Batch (in second): {}", args.total_batch_duration)
-    logger.info("Chunk Size: {}", args.chunk_size)
-    logger.info("Left Context Size: {}", args.left_context_size)
-    logger.info("Right Context Size: {}", args.right_context_size)
-    logger.info("Long Form Audio Path: {}", args.long_form_audio)
-    logger.info("Audio List Path: {}", args.audio_list)
+    # Print the arguments
+    print(f"Model Checkpoint: {args.model_checkpoint}")
+    print(f"Device: {device}")
+    print(f"Total Duration in a Batch (in second): {args.total_batch_duration}")
+    print(f"Chunk Size: {args.chunk_size}")
+    print(f"Left Context Size: {args.left_context_size}")
+    print(f"Right Context Size: {args.right_context_size}")
+    print(f"Long Form Audio Path: {args.long_form_audio}")
+    print(f"Audio List Path: {args.audio_list}")
     
     assert args.model_checkpoint is not None, "You must specify the path to the model"
     assert args.long_form_audio or args.audio_list, "`long_form_audio` or `audio_list` must be activated"
@@ -286,3 +278,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
